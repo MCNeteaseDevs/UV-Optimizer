@@ -8,6 +8,7 @@ let button;
     const author = "MCNeteaseDevs";
     const description =
         "自动优化UV：支持间隙设置，自动合并相似面，智能压缩纹理";
+    const ignoredFormatIds = ["free"]; // 在指定格式下不启用插件，目前实测自由模型无法正常工作
 
     // 注册插件
     var plugin = {
@@ -16,7 +17,7 @@ let button;
         icon,
         author,
         description,
-        version: "1.0.0",
+        version: "1.0.1",
         variant: "both",
         onload() {
             // 注册主菜单按钮
@@ -25,6 +26,14 @@ let button;
                 icon: icon,
                 category: "edit",
                 click: function () {
+                    if(ignoredFormatIds.includes(Project.format.id)) {
+                        Blockbench.showMessageBox({
+                            title: "错误",
+                            message: "不支持自由模型UV自动优化，请转换模型格式后再试",
+                            icon: "error",
+                        });
+                        return
+                    }
                     showDialog();
                 },
             });
