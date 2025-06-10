@@ -1,35 +1,93 @@
+const languages = {
+    en: {
+        name: "UV Optimizer",
+        description: "Automatically optimize UV: supports gap settings, auto-merges similar faces, smart texture compression",
+        optimize_uv: "Optimize UV",
+        settings: "UV Optimization Settings",
+        gap: "Gap between faces (pixels)",
+        similarity: "Pixel similarity threshold (%)",
+        ignore_effect_pixel: "Ignore if effective pixels below (%)",
+        downsize_threshold: "Texture downsize similarity threshold (%)",
+        padding: "Padding (pixels)",
+        check_flip: "Check flip",
+        square: "Square texture",
+        only_rearrange: "Only rearrange",
+        confirm: "Confirm",
+        cancel: "Cancel",
+        error: "Error",
+        no_elements: "No available model elements",
+        no_textures: "No available textures",
+        optimizing: "Optimizing UV...",
+        complete: "UV optimization complete!",
+        failed: "UV optimization failed: ",
+        free_model_error: "Free model UV auto-optimization is not supported, please convert the model format and try again"
+    },
+    zh: {
+        name: "UV优化器",
+        description: "自动优化UV：支持间隙设置，自动合并相似面，智能压缩纹理",
+        optimize_uv: "UV优化",
+        settings: "UV优化设置",
+        gap: "面之间的间隙(像素)",
+        similarity: "像素相似度阈值(%)",
+        ignore_effect_pixel: "有效像素低于忽略(%)",
+        downsize_threshold: "缩小纹理相似度阈值(%)",
+        padding: "内边距(像素)",
+        check_flip: "检测翻转",
+        square: "等宽高",
+        only_rearrange: "仅重排",
+        confirm: "确认",
+        cancel: "取消",
+        error: "错误",
+        no_elements: "没有可用的模型元素",
+        no_textures: "没有可用的纹理",
+        optimizing: "UV优化中...",
+        complete: "UV优化完成!",
+        failed: "UV优化失败: ",
+        free_model_error: "不支持自由模型UV自动优化，请转换模型格式后再试"
+    }
+};
+
 let button;
 
 (function () {
     // 插件信息
     const id = "uv_optimizer";
-    const name = "UV Optimizer";
     const icon = "fa-th";
     const author = "MCNeteaseDevs";
-    const description =
-        "自动优化UV：支持间隙设置，自动合并相似面，智能压缩纹理";
-    const ignoredFormatIds = ["free"]; // 在指定格式下不启用插件，目前实测自由模型无法正常工作
+    const ignoredFormatIds = ["free"];  // ignore specific formats ids, uv optimizer
+
+    const lang = getLanguage();
+
+    // 获取当前语言
+    function getLanguage() {
+        return Blockbench.Language || 'en';
+    }
+
+    // 获取翻译文本
+    function t(key) {
+        return languages[lang]?.[key] || languages['en'][key] || key;
+    }
 
     // 注册插件
     var plugin = {
         id,
-        name,
+        name: t('name'),
         icon,
         author,
-        description,
+        description: t('description'),
         version: "1.0.1",
         variant: "both",
         onload() {
             // 注册主菜单按钮
             button = new Action("optimize_uv", {
-                name: "UV优化",
+                name: t('optimize_uv'),
                 icon: icon,
                 category: "edit",
                 click: function () {
                     if(ignoredFormatIds.includes(Project.format.id)) {
                         Blockbench.showMessageBox({
-                            title: "错误",
-                            message: "不支持自由模型UV自动优化，请转换模型格式后再试",
+                            title: t('error'),
+                            message: t('free_model_error'),
                             icon: "error",
                         });
                         return
@@ -48,48 +106,48 @@ let button;
     function showDialog() {
         var dialog = new Dialog({
             id: "uv_optimizer_settings",
-            title: "UV优化设置",
+            title: t('settings'),
             width: 400,
-            buttons: ["确认", "取消"],
+            buttons: [t('confirm'), t('cancel')],
             form: {
                 gap: {
-                    label: "面之间的间隙(像素)",
+                    label: t('gap'),
                     type: "number",
                     value: 0,
                     min: 0,
                     max: 10,
                 },
                 similarity: {
-                    label: "像素相似度阈值(%)",
+                    label: t('similarity'),
                     type: "number",
                     value: 90,
                     min: 50,
                     max: 100,
                 },
                 ignoreEffectPixelPercent: {
-                    label: "有效像素低于忽略(%)",
+                    label: t('ignore_effect_pixel'),
                     type: "number",
                     value: 1,
                     min: 0,
                     max: 100,
                 },
                 downsizeThreshold: {
-                    label: "缩小纹理相似度阈值(%)",
+                    label: t('downsize_threshold'),
                     type: "number",
                     value: 90,
                     min: 50,
                     max: 100,
                 },
                 padding: {
-                    label: "内边距(像素)",
+                    label: t('padding'),
                     type: "number",
                     value: 0,
                     min: 0,
                     max: 5,
                 },
-                checkFlip: { label: "检测翻转", type: "checkbox", value: true },
-                square: { label: "等宽高", type: "checkbox", value: false },
-                onlyRearrange: { label: "仅重排", type: "checkbox", value: false },
+                checkFlip: { label: t('check_flip'), type: "checkbox", value: true },
+                square: { label: t('square'), type: "checkbox", value: false },
+                onlyRearrange: { label: t('only_rearrange'), type: "checkbox", value: false },
             },
             onConfirm: function (formData) {
                 optimizeUV(formData);
@@ -103,8 +161,8 @@ let button;
         // 确保有活动的模型
         if (!Project || !Project.elements || Project.elements.length === 0) {
             Blockbench.showMessageBox({
-                title: "错误",
-                message: "没有可用的模型元素",
+                title: t('error'),
+                message: t('no_elements'),
                 icon: "error",
             });
             return;
@@ -112,8 +170,8 @@ let button;
 
         if (!Texture.all || Texture.all.length === 0) {
             Blockbench.showMessageBox({
-                title: "错误",
-                message: "没有可用的纹理",
+                title: t('error'),
+                message: t('no_textures'),
                 icon: "error",
             });
             return;
@@ -122,7 +180,7 @@ let button;
         Undo.initEdit({ elements: Project.elements, uv_only: true });
 
         try {
-            Blockbench.showQuickMessage("UV优化中...", 2000);
+            Blockbench.showQuickMessage(t('optimizing'), 2000);
 
             // 步骤1: 收集所有面并分析其纹理内容
             let allFaces = collectFaces(settings.ignoreEffectPixelPercent / 100);
@@ -141,12 +199,12 @@ let button;
             // 步骤4: 重排UV
             rearrangeUV(faceGroups, settings.gap, settings.padding, settings.square);
 
-            Blockbench.showQuickMessage("UV优化完成!", 2000);
+            Blockbench.showQuickMessage(t('complete'), 2000);
         } catch (e) {
             console.error(e);
             Blockbench.showMessageBox({
-                title: "错误",
-                message: "UV优化失败: " + e.message,
+                title: t('error'),
+                message: t('failed') + e.message,
                 icon: "error",
             });
         }
