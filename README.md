@@ -1,5 +1,7 @@
 # Blockbench 模型UV优化插件
 
+Other Languages: [English](./README.en.md)
+
 欢迎使用模型UV优化插件，详细请参考使用教程
 
 本插件将会自动优化UV，支持间隙设置、合并相似面、智能压缩纹理等
